@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hungry Penguin - Holographic Edition</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(45deg, #000033, #000066);
+        }
+        #gameCanvas {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const penguin = {
+            x: 50,
+            y: canvas.height / 2,
+            width: 60,
+            height: 70,
+            speed: 5,
+            dx: 0,
+            dy: 0
+        };
+
+        const fish = [];
+        const monsters = [];
+
+        let score = 0;
+        let gameOver = false;
+        let gameStarted = false;
+        let playerName = "";
+        let nameEntered = false;
+        let time = 0;
+
+        function drawHolographicBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, 'rgba(0, 50, 100, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 100, 200, 0.5)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw holographic grid
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawPenguin() {
+            ctx.save();
+            ctx.translate(penguin.x, penguin.y);
+
+            // Holographic effect
+            ctx.shadowColor = 'rgba(0, 255, 255, 0.5)';
+            ctx.shadowBlur = 10;
+
+            // Body
+            ctx.fillStyle = 'rgba(30, 144, 255, 0.8)';
+            ctx.beginPath();
+            ctx.ellipse(30, 35, 30, 35, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Belly
+            ctx.fillStyle = 'rgba(240, 248, 255, 0.8)';
+            ctx.beginPath();
+            ctx.ellipse(30, 40, 20, 25, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = 'rgba(30, 144, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(30, 15, 15, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(25, 10, 3, 0, 2 * Math.PI);
+            ctx.arc(35, 10, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Beak
+            ctx.fillStyle = 'rgba(255, 99, 71, 0.8)';
+            ctx.beginPath();
+            ctx.moveTo(25, 15);
+            ctx.lineTo(35, 15);
+            ctx.lineTo(30, 22);
+            ctx.closePath();
+            ctx.fill();
+
+            // Feet
+            ctx.fillStyle = 'rgba(255, 99, 71, 0.8)';
+            ctx.fillRect(20, 65, 10, 5);
+            ctx.fillRect(40, 65, 10, 5);
+
+            ctx.restore();
+        }
+
+        function drawFish() {
+            fish.forEach(f => {
+                ctx.save();
+                ctx.translate(f.x, f.y);
+
+                // Holographic effect
+                ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+                ctx.shadowBlur = 10;
+
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+                ctx.beginPath();
+                ctx.ellipse(15, 10, 15, 10, 0, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255, 165, 0, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(30, 10);
+                ctx.lineTo(40, 0);
+                ctx.lineTo(40, 20);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            });
+        }
+
+        function drawMonsters() {
+            monsters.forEach(m => {
+                ctx.save();
+                ctx.translate(m.x, m.y);
+
+                // Holographic effect
+                ctx.shadowColor = 'rgba(255, 105, 180, 0.5)';
+                ctx.shadowBlur = 10;
+
+                // Body
+                ctx.fillStyle = 'rgba(255, 105, 180, 0.8)';
+                ctx.beginPath();
+                ctx.arc(20, 20, 20, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(13, 15, 5, 0, 2 * Math.PI);
+                ctx.arc(27, 15, 5, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(13, 15, 2, 0, 2 * Math.PI);
+                ctx.arc(27, 15, 2, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Mouth
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(20, 25, 8, 0, Math.PI);
+                ctx.stroke();
+
+                ctx.restore();
+            });
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'rgba(255, 20, 147, 0.8)';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Fish eaten: ${score}`, 10, 30);
+        }
+
+        function drawHolographicText(text, x, y, fontSize, color) {
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+
+            // Holographic effect
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = `rgba(0, 255, 255, ${0.2 + 0.1 * Math.sin(time * 0.1)})`;
+            ctx.fillText(text, x + 2, y + 2);
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawGameOver() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawHolographicText('Game Over', canvas.width / 2, canvas.height / 2 - 60, 48, 'rgba(255, 105, 180, 0.8)');
+            drawHolographicText(`Well done, ${playerName}!`, canvas.width / 2, canvas.height / 2, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText(`Your penguin ate ${score} fish!`, canvas.width / 2, canvas.height / 2 + 40, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText('Press Space to Play Again', canvas.width / 2, canvas.height / 2 + 100, 24, 'rgba(255, 215, 0, 0.8)');
+        }
+
+        function drawInstructions() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawHolographicText(`Welcome, ${playerName}!`, canvas.width / 2, canvas.height / 2 - 140, 48, 'rgba(255, 105, 180, 0.8)');
+            drawHolographicText('Hungry Penguin', canvas.width / 2, canvas.height / 2 - 80, 48, 'rgba(255, 105, 180, 0.8)');
+            
+            drawHolographicText('How to Play:', canvas.width / 2, canvas.height / 2 - 20, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText('• Use Up Arrow to jump', canvas.width / 2, canvas.height / 2 + 20, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText('• Use Left and Right Arrows to move', canvas.width / 2, canvas.height / 2 + 60, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText('• Eat gold fish to satisfy your hunger', canvas.width / 2, canvas.height / 2 + 100, 24, 'rgba(0, 255, 127, 0.8)');
+            drawHolographicText('• Avoid the cute but mischievous monsters', canvas.width / 2, canvas.height / 2 + 140, 24, 'rgba(0, 255, 127, 0.8)');
+            
+            drawHolographicText('Press Space to Start', canvas.width / 2, canvas.height / 2 + 200, 24, 'rgba(255, 215, 0, 0.8)');
+        }
+
+        function drawNameEntry() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawHolographicText('Welcome to Hungry Penguin!', canvas.width / 2, canvas.height / 2 - 60, 48, 'rgba(255, 105, 180, 0.8)');
+            drawHolographicText('Please enter your name:', canvas.width / 2, canvas.height / 2, 24, 'rgba(0, 255, 127, 0.8)');
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2 + 20, 200, 40);
+            
+            drawHolographicText(playerName, canvas.width / 2, canvas.height / 2 + 50, 24, 'rgba(255, 255, 255, 0.8)');
+            drawHolographicText('Press Enter when done', canvas.width / 2, canvas.height / 2 + 100, 24, 'rgba(255, 215, 0, 0.8)');
+        }
+
+        function update() {
+            if (!gameStarted || gameOver) return;
+
+            penguin.x += penguin.dx;
+            penguin.y += penguin.dy;
+
+            // Apply gravity
+            penguin.dy += 0.5;
+
+            // Constrain penguin to canvas
+            if (penguin.x < 0) penguin.x = 0;
+            if (penguin.x + penguin.width > canvas.width) penguin.x = canvas.width - penguin.width;
+            if (penguin.y < 0) penguin.y = 0;
+            if (penguin.y + penguin.height > canvas.height) {
+                penguin.y = canvas.height - penguin.height;
+                penguin.dy = 0;
+            }
+
+            fish.forEach((f, index) => {
+                f.x -= 5;
+                if (f.x + 30 < 0) {
+                    fish.splice(index, 1);
+                }
+                if (collision(penguin, f)) {
+                    fish.splice(index, 1);
+                    score++;
+                }
+            });
+
+            monsters.forEach((m, index) => {
+                m.x -= 5;
+                if (m.x + 40 < 0) {
+                    monsters.splice(index, 1);
+                }
+                if (collision(penguin, m)) {
+                    gameOver = true;
+                }
+            });
+
+            if (Math.random() < 0.02) {
+                fish.push({x: canvas.width, y: Math.random() * (canvas.height - 20)});
+            }
+
+            if (Math.random() < 0.01) {
+                monsters.push({x: canvas.width, y: Math.random() * (canvas.height - 40)});
+            }
+
+            time++;
+        }
+
+        function collision(a, b) {
+            return a.x < b.x + 30 &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + 20 &&
+                   a.y + a.height > b.y;
+        }
+
+        function resetGame() {
+            penguin.x = 50;
+            penguin.y = canvas.height / 2;
+            penguin.dx = 0;
+            penguin.dy = 0;
+            fish.length = 0;
+            monsters.length = 0;
+            score = 0;
+            gameOver = false;
+            gameStarted = false;
+            time = 0;
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawHolographicBackground();
+            
+            if (!nameEntered) {
+                drawNameEntry();
+            } else if (!gameStarted) {
+                drawInstructions();
+            } else {
+                update();
+                drawPenguin();
+                drawFish();
+                drawMonsters();
+                drawScore();
+                if (gameOver) {
+                    drawGameOver();
+                }
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (!nameEntered) {
+                if (e.key === 'Enter' && playerName.length > 0) {
+                    nameEntered = true;
+                } else if (e.key === 'Backspace') {
+                    playerName = playerName.slice(0, -1);
+                } else if (e.key.length === 1) {
+                    playerName += e.key;
+                }
+            } else if (!gameStarted && e.key === ' ') {
+                gameStarted = true;
+            } else if (gameOver && e.key === ' ') {
+                resetGame();
+                gameStarted = true;
+            } else if (gameStarted) {
+                if (e.key === 'ArrowRight') {
+                    penguin.dx = penguin.speed;
+                } else if (e.key === 'ArrowLeft') {
+                    penguin.dx = -penguin.speed;
+                } else if (e.key === 'ArrowUp') {
+                    penguin.dy = -penguin.speed * 2;
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (gameStarted) {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    penguin.dx = 0;
+                }
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
